@@ -58,13 +58,19 @@ def generate_algebraic_problem(difficulty):
         equation = Eq(a * x + b, c * x + d)
     elif difficulty == 3:
         a, b, c = random.randint(1, 5), random.randint(1, 10), random.randint(1, 10)
+        # Ensure b is not zero to avoid equations without linear term
+        b = random.randint(1, 10)
         equation = Eq(a * x ** 2 + b * x, c)
     elif difficulty == 4:
-        a, b, c = random.randint(5, 15), random.randint(10, 20), random.randint(5, 15)
+        a, b, c = random.randint(5, 15), random.randint(1, 20), random.randint(5, 15)
+        # Ensure b is not zero to avoid equations without linear term
+        b = random.randint(1, 20)
         equation = Eq(a * x ** 2 + b * x, c)
     else:
-        a, b, c, d = random.randint(10, 20), random.randint(5, 15), random.randint(10, 20), random.randint(5, 15)
-        equation = Eq(a * x ** 2 + b * x + c, d * x ** 2 + b * x)
+        a, b, c, d = random.randint(10, 20), random.randint(1, 15), random.randint(10, 20), random.randint(5, 15)
+        # Ensure b is not zero to avoid equations without linear term
+        b = random.randint(1, 15)
+        equation = Eq(a * x ** 2 + b * x + c, d * x ** 2 + random.randint(1, 15) * x)
 
     return equation
 
@@ -140,6 +146,7 @@ def solve_problem():
 
         for sol in correct_solution:
             correct_sol_complex = complex(sol.replace('*I', 'j').replace('I', 'j'))
+            # Adjust format for comparison, allow small margin for complex numbers
             if (user_solution_complex_1 is not None and abs(user_solution_complex_1 - correct_sol_complex) < 0.01) or \
                (user_solution_complex_2 is not None and abs(user_solution_complex_2 - correct_sol_complex) < 0.01):
                 is_correct = True
