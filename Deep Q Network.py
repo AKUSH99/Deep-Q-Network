@@ -14,7 +14,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 # Q-Learning Parameter
-alpha = 0.1
+alpha = 0.3
 gamma = 0.9
 epsilon = 0.7
 
@@ -199,5 +199,3 @@ def q_values_plot():
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)
-
-# just a comment
