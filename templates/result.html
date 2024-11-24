@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <h2>Ergebnis</h2>
+    <p style="text-align: left;">Die Aufgabe war: $$ {{ equation }} $$</p>
+    <p>{{ feedback }}</p>
+    <p>Die korrekte Lösung ist: $$ {{ correct_solution }} $$</p>
+    <p>Deine Eingabe: {{ user_solution }}</p>
+    <p>Gesamtpunktzahl: {{ total_score }}</p>
+    <a href="{{ url_for('index') }}">Neue Aufgabe generieren</a>
+{% endblock %}
