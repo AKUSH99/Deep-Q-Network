@@ -4,8 +4,12 @@
     <h2>Neue Aufgabe</h2>
     <p style="text-align: left;">$$ {{ equation }} $$</p>
     <form action="{{ url_for('solve_problem') }}" method="post">
-        <label for="solution">Deine Lösung:</label>
-        <input type="text" id="solution" name="solution">
+        <label for="solution_1">Deine Lösung für x1:</label>
+        <input type="text" id="solution_1" name="solution_1">
+
+        <label for="solution_2">Deine Lösung für x2:</label>
+        <input type="text" id="solution_2" name="solution_2">
+
         <button type="submit">Lösung einreichen</button>
     </form>
 

@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 from collections import deque
 from decimal import Decimal
+import cmath
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -113,7 +114,8 @@ def index():
 
 @app.route('/solve', methods=['POST'])
 def solve_problem():
-    user_solution = request.form['solution']
+    user_solution_1 = request.form.get('solution_1', '').strip()
+    user_solution_2 = request.form.get('solution_2', '').strip()
     correct_solution = session.get('correct_solution', [])
     state = session.get('current_state', [1])
     if state[0] < 1 or state[0] > len(difficulty_levels):
@@ -123,12 +125,26 @@ def solve_problem():
 
     is_correct = False
     try:
-        user_solution_decimal = Decimal(user_solution)
+        # Handling user input for complex numbers with two decimal places followed by 'i'
+        if user_solution_1:
+            user_solution_1 = user_solution_1.replace('i', 'j').replace('I', 'j')
+            user_solution_complex_1 = complex(user_solution_1)
+        else:
+            user_solution_complex_1 = None
+
+        if user_solution_2:
+            user_solution_2 = user_solution_2.replace('i', 'j').replace('I', 'j')
+            user_solution_complex_2 = complex(user_solution_2)
+        else:
+            user_solution_complex_2 = None
+
         for sol in correct_solution:
-            if abs(user_solution_decimal - Decimal(sol)) < Decimal('0.01'):
+            correct_sol_complex = complex(sol.replace('*I', 'j').replace('I', 'j'))
+            if (user_solution_complex_1 is not None and abs(user_solution_complex_1 - correct_sol_complex) < 0.01) or \
+               (user_solution_complex_2 is not None and abs(user_solution_complex_2 - correct_sol_complex) < 0.01):
                 is_correct = True
                 break
-    except:
+    except ValueError:
         is_correct = False
 
     reward = 10 if is_correct else -5
@@ -159,7 +175,8 @@ def solve_problem():
 
     return render_template('result.html', current_level=current_state, next_level=next_state[0], next_action_feedback=stufen_nachricht, current_state_feedback=f'Stufe: {current_state}',
                            equation=session.get('current_equation'),
-                           user_solution=user_solution,
+                           user_solution_1=user_solution_1,
+                           user_solution_2=user_solution_2,
                            correct_solution=correct_solution,
                            feedback="Richtig!" if is_correct else "Falsch!", current_level_feedback=f'Aktueller Schwierigkeitsgrad: Stufe {next_state[0]}',
                            total_score=session['total_score'])
