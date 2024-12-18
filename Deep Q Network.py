@@ -106,16 +106,31 @@ def replay():
 @app.route('/')
 def index():
     # Reset session data only when leaving the application
-    if 'total_score' not in session or 'current_state' not in session or not session['current_state'] or session['current_state'][0] < 1 or session['current_state'][0] > len(difficulty_levels):
-        session['current_state'] = [1]; session['total_score'] = 0; session['rewards_per_episode'] = []
+    if 'total_score' not in session or 'current_state' not in session or not session['current_state'] or \
+            session['current_state'][0] < 1 or session['current_state'][0] > len(difficulty_levels):
+        session['current_state'] = [1];
+        session['total_score'] = 0;
+        session['rewards_per_episode'] = []
         session['total_score'] = 0
         session['rewards_per_episode'] = []
 
     equation = generate_algebraic_problem(difficulty_levels[session['current_state'][0] - 1])
     solution = solve(equation, x)
     session['current_equation'] = latex(equation)
-    session['correct_solution'] = [str(s.evalf()) for s in solution]
-    return render_template('index.html', equation=session['current_equation'], current_level=session['current_state'][0], total_score=session['total_score'], current_state_feedback=f'Stufe: {session["current_state"][0]}')
+
+    # Update correct_solution to include reals and complexes
+    session['correct_solution'] = []
+    for s in solution:
+        if s.is_real:
+            session['correct_solution'].append(str(round(float(s), 3)))
+        else:
+            real, imag = s.as_real_imag()
+            session['correct_solution'].append(
+                str(complex(round(float(real), 3), round(float(imag), 3)))
+            )
+    return render_template('index.html', equation=session['current_equation'],
+                           current_level=session['current_state'][0], total_score=session['total_score'],
+                           current_state_feedback=f'Stufe: {session["current_state"][0]}')
 
 
 @app.route('/solve', methods=['POST'])
@@ -131,7 +146,7 @@ def solve_problem():
 
     is_correct = False
     try:
-        # Handling user input for complex numbers with two decimal places followed by 'i'
+        # Handling user input for complex numbers with rounded values
         if user_solution_1:
             user_solution_1 = user_solution_1.replace('i', 'j').replace('I', 'j')
             user_solution_complex_1 = complex(user_solution_1)
@@ -145,16 +160,16 @@ def solve_problem():
             user_solution_complex_2 = None
 
         for sol in correct_solution:
-            correct_sol_complex = complex(sol.replace('*I', 'j').replace('I', 'j'))
+            correct_sol_complex = complex(sol) if 'j' in sol else float(sol)
             # Adjust format for comparison, allow small margin for complex numbers
             if (user_solution_complex_1 is not None and abs(user_solution_complex_1 - correct_sol_complex) < 0.01) or \
-               (user_solution_complex_2 is not None and abs(user_solution_complex_2 - correct_sol_complex) < 0.01):
+                    (user_solution_complex_2 is not None and abs(user_solution_complex_2 - correct_sol_complex) < 0.01):
                 is_correct = True
                 break
     except ValueError:
         is_correct = False
 
-    reward = 10 if is_correct else -5
+    reward = (10 * current_state) if is_correct else (-5 * current_state)
     session['total_score'] += reward
     session['rewards_per_episode'].append(session['total_score'])
 
@@ -178,14 +193,16 @@ def solve_problem():
     print(f"Aktueller Zustand: {current_state}")
     print(f"Q-Werte: {model(torch.FloatTensor(state).unsqueeze(0)).detach().numpy()}")
     print(f"Gewählte Aktion: {action}")
-    print(f"Belohnung: {reward}, Gesamtpunktzahl: {session['total_score']}")
+    print(f"Belohnung: {reward}, Gesamtpunktzahl: {session['total_score']}, Schwierigkeitsgrad: {current_state}")
 
-    return render_template('result.html', current_level=current_state, next_level=next_state[0], next_action_feedback=stufen_nachricht, current_state_feedback=f'Stufe: {current_state}',
+    return render_template('result.html', current_level=current_state, next_level=next_state[0],
+                           next_action_feedback=stufen_nachricht, current_state_feedback=f'Stufe: {current_state}',
                            equation=session.get('current_equation'),
                            user_solution_1=user_solution_1,
                            user_solution_2=user_solution_2,
                            correct_solution=correct_solution,
-                           feedback="Richtig!" if is_correct else "Falsch!", current_level_feedback=f'Aktueller Schwierigkeitsgrad: Stufe {next_state[0]}',
+                           feedback="Richtig!" if is_correct else "Falsch!",
+                           current_level_feedback=f'Aktueller Schwierigkeitsgrad: Stufe {next_state[0]}',
                            total_score=session['total_score'])
 
 
@@ -197,6 +214,21 @@ def plot_png():
     plt.xlabel('Episode')
     plt.ylabel('Gesamt-Belohnung')
     plt.title('Belohnung über Episoden')
+    plt.tight_layout()
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    img.seek(0)
+    return make_response(img.read())
+
+
+@app.route('/log_plot.png')
+def log_plot_png():
+    rewards = session.get('rewards_per_episode', [])
+    plt.figure()
+    plt.plot(np.log1p(rewards))  # log1p to handle log(0) and negative rewards
+    plt.xlabel('Episode')
+    plt.ylabel('Log(Gesamt-Belohnung)')
+    plt.title('Logarithmischer Belohnung über Episoden')
     plt.tight_layout()
     img = io.BytesIO()
     plt.savefig(img, format='png')
