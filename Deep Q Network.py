@@ -50,28 +50,23 @@ loss_fn = nn.MSELoss()
 
 
 def generate_algebraic_problem(difficulty):
-    if difficulty == 1:
+    if difficulty == 1:  # Simple linear equation with one solution
         a, b, c = random.randint(1, 5), random.randint(1, 5), random.randint(1, 10)
         equation = Eq(a * x + b, c)
-    elif difficulty == 2:
-        a, b, c, d = random.randint(5, 10), random.randint(1, 5), random.randint(5, 10), random.randint(1, 5)
+    elif difficulty == 2:  # Linear equation with one solution (ax + b = cx + d)
+        a, b, c, d = random.randint(1, 10), random.randint(1, 10), random.randint(1, 10), random.randint(1, 10)
+        while a == c:  # Ensure non-zero slope difference
+            a, c = random.randint(1, 10), random.randint(1, 10)
         equation = Eq(a * x + b, c * x + d)
-    elif difficulty == 3:
-        a, b, c = random.randint(1, 5), random.randint(1, 10), random.randint(1, 10)
-        # Ensure b is not zero to avoid equations without linear term
-        b = random.randint(1, 10)
+    else:  # Quadratic equation with two real solutions
+        while True:
+            a = random.randint(1, 10)
+            b = random.randint(1, 20)
+            c = random.randint(1, 20)
+            discriminant = b ** 2 - 4 * a * c
+            if discriminant >= 0:  # Ensure two real roots
+                break
         equation = Eq(a * x ** 2 + b * x, c)
-    elif difficulty == 4:
-        a, b, c = random.randint(5, 15), random.randint(1, 20), random.randint(5, 15)
-        # Ensure b is not zero to avoid equations without linear term
-        b = random.randint(1, 20)
-        equation = Eq(a * x ** 2 + b * x, c)
-    else:
-        a, b, c, d = random.randint(10, 20), random.randint(1, 15), random.randint(10, 20), random.randint(5, 15)
-        # Ensure b is not zero to avoid equations without linear term
-        b = random.randint(1, 15)
-        equation = Eq(a * x ** 2 + b * x + c, d * x ** 2 + random.randint(1, 15) * x)
-
     return equation
 
 
@@ -118,16 +113,8 @@ def index():
     solution = solve(equation, x)
     session['current_equation'] = latex(equation)
 
-    # Update correct_solution to include reals and complexes
-    session['correct_solution'] = []
-    for s in solution:
-        if s.is_real:
-            session['correct_solution'].append(str(round(float(s), 3)))
-        else:
-            real, imag = s.as_real_imag()
-            session['correct_solution'].append(
-                str(complex(round(float(real), 3), round(float(imag), 3)))
-            )
+    # Update correct_solution to include only real solutions
+    session['correct_solution'] = [str(round(float(s), 3)) for s in solution if s.is_real]
     return render_template('index.html', equation=session['current_equation'],
                            current_level=session['current_state'][0], total_score=session['total_score'],
                            current_state_feedback=f'Stufe: {session["current_state"][0]}')
@@ -146,24 +133,13 @@ def solve_problem():
 
     is_correct = False
     try:
-        # Handling user input for complex numbers with rounded values
-        if user_solution_1:
-            user_solution_1 = user_solution_1.replace('i', 'j').replace('I', 'j')
-            user_solution_complex_1 = complex(user_solution_1)
-        else:
-            user_solution_complex_1 = None
+        user_solution_1 = float(user_solution_1) if user_solution_1 else None
+        user_solution_2 = float(user_solution_2) if user_solution_2 else None
+        user_solutions = [user_solution_1, user_solution_2]
 
-        if user_solution_2:
-            user_solution_2 = user_solution_2.replace('i', 'j').replace('I', 'j')
-            user_solution_complex_2 = complex(user_solution_2)
-        else:
-            user_solution_complex_2 = None
-
+        # Check for correct answers with tolerance
         for sol in correct_solution:
-            correct_sol_complex = complex(sol) if 'j' in sol else float(sol)
-            # Adjust format for comparison, allow small margin for complex numbers
-            if (user_solution_complex_1 is not None and abs(user_solution_complex_1 - correct_sol_complex) < 0.01) or \
-                    (user_solution_complex_2 is not None and abs(user_solution_complex_2 - correct_sol_complex) < 0.01):
+            if any(abs(user_sol - float(sol)) < 0.01 for user_sol in user_solutions if user_sol is not None):
                 is_correct = True
                 break
     except ValueError:
@@ -181,28 +157,10 @@ def solve_problem():
 
     session['current_state'] = next_state
 
-    # Nachricht zur Stufenänderung
-    if next_state[0] > current_state:
-        stufen_nachricht = f'Sie wurden auf Stufe {next_state[0]} hochgestuft'
-    elif next_state[0] < current_state:
-        stufen_nachricht = f'Sie wurden auf Stufe {next_state[0]} abgestuft'
-    else:
-        stufen_nachricht = f'Sie bleiben auf Stufe {current_state}'
-
-    # Logging für Konsole
-    print(f"Aktueller Zustand: {current_state}")
-    print(f"Q-Werte: {model(torch.FloatTensor(state).unsqueeze(0)).detach().numpy()}")
-    print(f"Gewählte Aktion: {action}")
-    print(f"Belohnung: {reward}, Gesamtpunktzahl: {session['total_score']}, Schwierigkeitsgrad: {current_state}")
-
     return render_template('result.html', current_level=current_state, next_level=next_state[0],
-                           next_action_feedback=stufen_nachricht, current_state_feedback=f'Stufe: {current_state}',
                            equation=session.get('current_equation'),
-                           user_solution_1=user_solution_1,
-                           user_solution_2=user_solution_2,
-                           correct_solution=correct_solution,
-                           feedback="Richtig!" if is_correct else "Falsch!",
-                           current_level_feedback=f'Aktueller Schwierigkeitsgrad: Stufe {next_state[0]}',
+                           user_solution_1=user_solution_1, user_solution_2=user_solution_2,
+                           correct_solution=correct_solution, feedback="Richtig!" if is_correct else "Falsch!",
                            total_score=session['total_score'])
 
 
@@ -214,38 +172,6 @@ def plot_png():
     plt.xlabel('Episode')
     plt.ylabel('Gesamt-Belohnung')
     plt.title('Belohnung über Episoden')
-    plt.tight_layout()
-    img = io.BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    return make_response(img.read())
-
-
-@app.route('/log_plot.png')
-def log_plot_png():
-    rewards = session.get('rewards_per_episode', [])
-    plt.figure()
-    plt.plot(np.log1p(rewards))  # log1p to handle log(0) and negative rewards
-    plt.xlabel('Episode')
-    plt.ylabel('Log(Gesamt-Belohnung)')
-    plt.title('Logarithmischer Belohnung über Episoden')
-    plt.tight_layout()
-    img = io.BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    return make_response(img.read())
-
-
-@app.route('/q_values_plot.png')
-def q_values_plot():
-    state = session.get('current_state', [0])
-    q_values = model(torch.FloatTensor(state).unsqueeze(0)).detach().numpy()[0]
-
-    plt.figure()
-    plt.bar([f'Aktion {i}' for i in range(action_size)], q_values, color='skyblue')
-    plt.xlabel('Aktionen')
-    plt.ylabel('Q-Werte')
-    plt.title('Q-Werte für aktuelle Aktionen')
     plt.tight_layout()
     img = io.BytesIO()
     plt.savefig(img, format='png')
