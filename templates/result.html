@@ -2,14 +2,18 @@
 
 {% block content %}
     <h2>Ergebnis</h2>
-    <p style="text-align: left;">Die Aufgabe war: $$ {{ equation }} $$</p>
+    <p>Die Aufgabe war: $$ {{ equation }} $$</p>
     <p>{{ feedback }}</p>
-    <p>Die korrekte Lösung ist: $$ {{ correct_solution }} $$</p>
-    <p>Deine Eingaben:</p>
+    <p>Die korrekte Lösung ist: {{ correct_solution }}</p>
     <ul>
         <li>x1: {{ user_solution_1 }}</li>
         <li>x2: {{ user_solution_2 }}</li>
     </ul>
     <p>Gesamtpunktzahl: {{ total_score }}</p>
+
+    <!-- Feedback zur Schwierigkeitsstufe -->
+    <p><strong>{{ level_feedback }}</strong></p>
+    <p>Aktuelles Level: {{ current_level }} | Nächstes Level: {{ next_level }}</p>
+
     <a href="{{ url_for('index') }}">Neue Aufgabe generieren</a>
 {% endblock %}

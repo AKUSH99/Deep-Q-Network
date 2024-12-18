@@ -58,7 +58,7 @@ def generate_algebraic_problem(difficulty):
         while a == c:  # Ensure non-zero slope difference
             a, c = random.randint(1, 10), random.randint(1, 10)
         equation = Eq(a * x + b, c * x + d)
-    else:  # Quadratic equation with two real solutions
+    elif difficulty == 3:  # Quadratic equation with two real solutions
         while True:
             a = random.randint(1, 10)
             b = random.randint(1, 20)
@@ -67,15 +67,37 @@ def generate_algebraic_problem(difficulty):
             if discriminant >= 0:  # Ensure two real roots
                 break
         equation = Eq(a * x ** 2 + b * x, c)
+    elif difficulty == 4:  # More challenging quadratic equations
+        while True:
+            a = random.randint(1, 15)
+            b = random.randint(5, 25)
+            c = random.randint(5, 20)
+            discriminant = b ** 2 - 4 * a * c
+            if discriminant >= 0:  # Ensure two real roots
+                break
+        equation = Eq(a * x ** 2 + b * x + c, 0)
+    else:  # Difficulty 5: Complex quadratic equations with terms on both sides
+        while True:
+            a, b, c = random.randint(1, 10), random.randint(1, 15), random.randint(1, 10)
+            d, e, f = random.randint(1, 10), random.randint(1, 15), random.randint(1, 10)
+            discriminant_left = b ** 2 - 4 * a * c
+            discriminant_right = e ** 2 - 4 * d * f
+            if discriminant_left >= 0 and discriminant_right >= 0:  # Ensure both sides have real solutions
+                break
+        equation = Eq(a * x ** 2 + b * x + c, d * x ** 2 + e * x + f)
     return equation
 
 
 def choose_action(state, epsilon):
+    q_values = model(torch.FloatTensor(state).unsqueeze(0))
     if random.uniform(0, 1) < epsilon:
-        return random.choice(range(1, action_size + 1))
+        action = random.choice(range(1, action_size + 1))
+        print(f"Exploration: Random action chosen: {action}")
     else:
-        with torch.no_grad():
-            return torch.argmax(model(torch.FloatTensor(state).unsqueeze(0))).item()
+        action = torch.argmax(q_values).item() + 1
+        print(f"Exploitation: Action chosen based on Q-values: {action}")
+    print(f"Q-values for state {state}: {q_values.detach().numpy()}")
+    return action
 
 
 def remember(state, action, reward, next_state, done):
@@ -96,6 +118,7 @@ def replay():
         loss = loss_fn(target_f, model(torch.FloatTensor(state).unsqueeze(0)))
         loss.backward()
         optimizer.step()
+    print("Replay executed. Q-network updated.")
 
 
 @app.route('/')
@@ -155,13 +178,26 @@ def solve_problem():
     remember(state, action, reward, next_state, is_correct)
     replay()
 
+    previous_state = current_state  # Keep track of the previous level
     session['current_state'] = next_state
+
+    # Feedback zur Schwierigkeitsstufenänderung
+    if next_state[0] > previous_state:
+        level_feedback = f'Die Schwierigkeit wurde auf Level {next_state[0]} ERHÖHT.'
+    elif next_state[0] < previous_state:
+        level_feedback = f'Die Schwierigkeit wurde auf Level {next_state[0]} VERRINGERT.'
+    else:
+        level_feedback = f'Die Schwierigkeit blieb auf Level {current_state}.'
+
+    print(f"User's solutions: {user_solutions}")
+    print(f"Correct solutions: {correct_solution}")
+    print(f"Reward: {reward}, Total Score: {session['total_score']}, Level Feedback: {level_feedback}")
 
     return render_template('result.html', current_level=current_state, next_level=next_state[0],
                            equation=session.get('current_equation'),
                            user_solution_1=user_solution_1, user_solution_2=user_solution_2,
                            correct_solution=correct_solution, feedback="Richtig!" if is_correct else "Falsch!",
-                           total_score=session['total_score'])
+                           total_score=session['total_score'], level_feedback=level_feedback)
 
 
 @app.route('/plot.png')
