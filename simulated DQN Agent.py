@@ -79,27 +79,39 @@ def simulate_agent(episodes=200):
     plt.tight_layout()
     plt.show()
 
-    # Simplified Neural Network Architecture Visualization
+    # Improved Neural Network Architecture Visualization
     def visualize_architecture():
         layers = ["Input", "Hidden Layer 1", "Hidden Layer 2", "Output"]
         sizes = [1, 24, 24, len(difficulty_levels)]
 
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=(12, 8))
         x_coords = range(len(layers))
+        max_frequency = max(level_counts.values()) if level_counts else 1
+
         for i, size in enumerate(sizes):
             y_coords = np.linspace(0, 1, size)
-            ax.scatter([x_coords[i]] * size, y_coords, s=50, label=f"{layers[i]} ({size})")
+            ax.scatter([x_coords[i]] * size, y_coords, s=100, label=f"{layers[i]} ({size})", zorder=3)
 
         for i in range(len(sizes) - 1):
             for y1 in np.linspace(0, 1, sizes[i]):
                 for y2 in np.linspace(0, 1, sizes[i + 1]):
-                    ax.plot([x_coords[i], x_coords[i + 1]], [y1, y2], color='gray', alpha=0.7, linewidth=0.8)
+                    level_index = i + 1
+                    weight = level_counts[level_index] if level_index in level_counts else 0
+                    normalized_weight = weight / max_frequency
+                    ax.plot(
+                        [x_coords[i], x_coords[i + 1]],
+                        [y1, y2],
+                        color=plt.cm.viridis(normalized_weight),
+                        alpha=0.6 + 0.4 * normalized_weight,
+                        linewidth=0.5 + 2 * normalized_weight,
+                        zorder=1
+                    )
 
         ax.set_xticks(x_coords)
-        ax.set_xticklabels(layers, fontsize=12)
+        ax.set_xticklabels(layers, fontsize=12, fontweight='bold')
         ax.set_yticks([])
-        ax.set_title("Simplified Neural Network Architecture", fontsize=14, fontweight='bold')
-        plt.legend(fontsize=10)
+        ax.set_title("Neural Network Architecture with Level Frequencies", fontsize=16, fontweight='bold')
+        plt.legend(fontsize=10, loc='upper right')
         plt.tight_layout()
         plt.show()
 
