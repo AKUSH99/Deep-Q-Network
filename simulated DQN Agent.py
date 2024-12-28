@@ -11,7 +11,7 @@ from Deep_Q_Network import model, choose_action, remember, replay, difficulty_le
 
 # Assuming the DQN and supporting code has been imported
 
-def simulate_agent(episodes=200):
+def simulate_agent(episodes=2000):
     state = [1]  # Starting level
     level_counts = Counter()
 
@@ -20,9 +20,11 @@ def simulate_agent(episodes=200):
     epsilon_min = 0.1
 
     for episode in range(episodes):
-        print(f"\nEpisode {episode + 1}:")
+        print(f"\n=== Episode {episode + 1} ===")
+        print("Step | Current State | Action | Next State | Reward")
+        print("-----------------------------------------------------")
 
-        for step in range(5):  # Reduced steps per episode to accelerate the simulation
+        for step in range(1):  # One step per episode
             action = choose_action(state, epsilon)  # Use a dynamic epsilon for testing
             next_state = [action]
 
@@ -38,13 +40,20 @@ def simulate_agent(episodes=200):
                 reward = -20 * next_state[0]  # Increased penalty for reducing difficulty
 
             # Log the result of the step
-            print(f"Step {step + 1}: State {state[0]} -> Action {action} -> Next State {next_state[0]} | Reward: {reward}")
+            print(f"  {step + 1}  |       {state[0]}       |   {action}    |     {next_state[0]}      |   {reward}")
 
             # Remember and update the model
             remember(state, action - 1, reward, next_state, done=False)
             replay()
 
             state = next_state
+
+        # Display Q-values for the last state of the episode
+        q_values = model(torch.FloatTensor(state).unsqueeze(0)).detach().numpy()
+        q_values_rounded = np.round(q_values[0], 2)
+        print("\nQ-Values for Current State:")
+        print(q_values_rounded)
+        print("Replay executed. Q-network updated.")
 
         # Decay epsilon
         if epsilon > epsilon_min:
@@ -90,7 +99,7 @@ def simulate_agent(episodes=200):
 
         for i, size in enumerate(sizes):
             y_coords = np.linspace(0, 1, size)
-            ax.scatter([x_coords[i]] * size, y_coords, s=100, label=f"{layers[i]} ({size})", zorder=3)
+            ax.scatter([x_coords[i]] * size, y_coords, s=100, label=f"{layers[i]} ({size})", zorder=3, color=['blue', 'orange', 'green', 'red'][i])
 
         for i in range(len(sizes) - 1):
             for y1 in np.linspace(0, 1, sizes[i]):
@@ -107,11 +116,17 @@ def simulate_agent(episodes=200):
                         zorder=1
                     )
 
+        # Annotate difficulty levels on the output layer
+        for i, label in enumerate(difficulty_levels):
+            ax.annotate(f"Level {label}\n{level_counts.get(label, 0)} occurrences",
+                        (x_coords[-1] + 0.1, np.linspace(0, 1, sizes[-1])[i]),
+                        fontsize=10, fontweight='bold', color='red')
+
         ax.set_xticks(x_coords)
         ax.set_xticklabels(layers, fontsize=12, fontweight='bold')
         ax.set_yticks([])
         ax.set_title("Neural Network Architecture with Level Frequencies", fontsize=16, fontweight='bold')
-        plt.legend(fontsize=10, loc='upper right')
+        plt.legend(fontsize=10, loc='upper left')
         plt.tight_layout()
         plt.show()
 
