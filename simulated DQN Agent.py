@@ -56,10 +56,19 @@ def simulate_agent(episodes=200):
 
     # Bar Plot
     plt.figure()
-    plt.bar(levels, frequencies, color='green', alpha=0.7)
+    plt.bar(levels, frequencies, color='blue', alpha=0.7)
     plt.xlabel('Difficulty Level')
     plt.ylabel('Occurrences')
     plt.title('Time Spent on Each Difficulty Level')
+    plt.tight_layout()
+    plt.show()
+
+    # Line Plot
+    plt.figure()
+    plt.plot(levels, frequencies, marker='o', linestyle='-', color='green')
+    plt.xlabel('Difficulty Level')
+    plt.ylabel('Occurrences')
+    plt.title('Trend of Time Spent on Difficulty Levels')
     plt.tight_layout()
     plt.show()
 
@@ -69,6 +78,32 @@ def simulate_agent(episodes=200):
     plt.title('Percentage of Time Spent on Each Difficulty Level')
     plt.tight_layout()
     plt.show()
+
+    # Simplified Neural Network Architecture Visualization
+    def visualize_architecture():
+        layers = ["Input", "Hidden Layer 1", "Hidden Layer 2", "Output"]
+        sizes = [1, 24, 24, len(difficulty_levels)]
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+        x_coords = range(len(layers))
+        for i, size in enumerate(sizes):
+            y_coords = np.linspace(0, 1, size)
+            ax.scatter([x_coords[i]] * size, y_coords, s=50, label=f"{layers[i]} ({size})")
+
+        for i in range(len(sizes) - 1):
+            for y1 in np.linspace(0, 1, sizes[i]):
+                for y2 in np.linspace(0, 1, sizes[i + 1]):
+                    ax.plot([x_coords[i], x_coords[i + 1]], [y1, y2], color='gray', alpha=0.7, linewidth=0.8)
+
+        ax.set_xticks(x_coords)
+        ax.set_xticklabels(layers, fontsize=12)
+        ax.set_yticks([])
+        ax.set_title("Simplified Neural Network Architecture", fontsize=14, fontweight='bold')
+        plt.legend(fontsize=10)
+        plt.tight_layout()
+        plt.show()
+
+    visualize_architecture()
 
 if __name__ == "__main__":
     simulate_agent()
