@@ -1,25 +1,17 @@
 .level {
     text-align: center;
-    font-size: 1.5em;
+    font-size: 1.8em;
     margin-top: 10px;
     color: #333;
 }
 
 .level-highlight {
-    font-size: 2em;
+    font-size: 2.5em;
     font-weight: bold;
-    color: #ff4500; /* Auffällige Farbe wie Orange */
-    text-shadow: 1px 1px 2px #000; /* Leichter Schatten für bessere Sichtbarkeit */
-}
-
-.score {
-    text-align: center;
-    font-size: 1.2em;
-    margin-top: 5px;
-    color: #555;
-}
-
-.highlight {
-    font-weight: bold;
-    color: #0073e6; /* Auffällige Farbe für die Punktzahl */
+    color: #ff5722; /* Auffällige Farbe wie Orange */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Schatten für mehr Tiefe */
+    padding: 5px;
+    border: 2px solid #ff5722;
+    border-radius: 5px;
+    background-color: rgba(255, 87, 34, 0.1); /* Transparenter Hintergrund */
 }

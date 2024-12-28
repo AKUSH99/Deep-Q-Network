@@ -54,11 +54,19 @@ def simulate_agent(episodes=200):
     levels = sorted(level_counts.keys())
     frequencies = [level_counts[level] for level in levels]
 
+    # Bar Plot
     plt.figure()
     plt.bar(levels, frequencies, color='green', alpha=0.7)
     plt.xlabel('Difficulty Level')
     plt.ylabel('Occurrences')
     plt.title('Time Spent on Each Difficulty Level')
+    plt.tight_layout()
+    plt.show()
+
+    # Pie Chart
+    plt.figure()
+    plt.pie(frequencies, labels=[f"Level {level}" for level in levels], autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
+    plt.title('Percentage of Time Spent on Each Difficulty Level')
     plt.tight_layout()
     plt.show()
 

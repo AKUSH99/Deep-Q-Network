@@ -205,14 +205,17 @@ def plot_png():
     rewards = session.get('rewards_per_episode', [])
     plt.figure()
     plt.plot(rewards)
+    plt.xscale('linear')  # Lineare Skalierung der x-Achse (z. B. Episoden)
+    plt.yscale('log')  # Logarithmische Skalierung der y-Achse für die Belohnungen
     plt.xlabel('Episode')
-    plt.ylabel('Gesamt-Belohnung')
-    plt.title('Belohnung über Episoden')
+    plt.ylabel('Gesamt-Belohnung (logarithmisch)')
+    plt.title('Logarithmische Darstellung der Belohnung über Episoden')
     plt.tight_layout()
     img = io.BytesIO()
     plt.savefig(img, format='png')
     img.seek(0)
     return make_response(img.read())
+
 
 
 if __name__ == "__main__":
