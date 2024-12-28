@@ -12,10 +12,10 @@
     <header>
         <h1>Aufgabentraining</h1>
         <div class="score">
-            Punktzahl: {{ session.get('total_score', 0) }}
+            Punktzahl: <span class="highlight">{{ session.get('total_score', 0) }}</span>
         </div>
         <div class="level">
-            Aktuelles Level: {{ session.get('current_state', [1])[0] }}
+            Aktuelles Level: <span class="level-highlight">{{ session.get('current_state', [1])[0] }}</span>
         </div>
     </header>
     <div class="content">
