@@ -5,8 +5,8 @@ from collections import deque
 import sys
 
 # Add the path to the directory containing the DQN implementation
-sys.path.append(".")  # Replace with the path to your module if it's in a different folder
-from deep_q_network_enhanced import model, choose_action, remember, replay, difficulty_levels
+sys.path.append("C:/Users/Almid/PycharmProjects/Deep-Q-Network")  # Update with the correct path if needed
+from Deep_Q_Network import model, choose_action, remember, replay, difficulty_levels  # Import based on the correct file name
 
 # Assuming the DQN and supporting code has been imported
 
