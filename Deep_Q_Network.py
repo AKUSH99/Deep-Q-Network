@@ -25,7 +25,7 @@ x = symbols('x')
 # DQN Parameter
 state_size = 1
 action_size = len(difficulty_levels)
-batch_size = 32
+batch_size = 64
 
 # Experience Replay
 memory = deque(maxlen=2000)
@@ -45,7 +45,7 @@ class DQN(nn.Module):
 
 
 model = DQN(state_size, action_size)
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.005)
 loss_fn = nn.MSELoss()
 
 
