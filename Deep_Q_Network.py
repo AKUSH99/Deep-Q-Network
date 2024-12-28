@@ -15,9 +15,9 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 # Q-Learning Parameter
-alpha = 0.3
-gamma = 0.9
-epsilon = 0.7
+alpha = 0.5
+gamma = 0.99
+epsilon = 0.1
 
 difficulty_levels = [1, 2, 3, 4, 5]
 x = symbols('x')

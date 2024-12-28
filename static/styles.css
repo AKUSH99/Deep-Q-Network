@@ -1,29 +1,6 @@
-body {
-    font-family: Arial, sans-serif;
-}
-
-h1 {
-    text-align: center;
-}
-
-.score {
+.level {
     text-align: right;
     font-size: 1.2em;
     margin-right: 20px;
-}
-
-.content {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-p {
-    text-align: left;
-    font-size: 1.1em;
-}
-
-label, input, button {
-    display: block;
-    margin-top: 10px;
-    font-size: 1em;
+    color: #555;
 }
