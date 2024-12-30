@@ -26,7 +26,7 @@ def choose_action(state, epsilon):
         print(f"Q-values for state {state}: {np.round(q_values.detach().numpy()[0], 2)}")
     return action
 
-def simulate_agent(episodes=200):
+def simulate_agent(episodes=1000):
     state = [1]  # Starting level
     level_counts = Counter()
 
@@ -106,28 +106,20 @@ def simulate_agent(episodes=200):
     plt.tight_layout()
     plt.show()
 
-    # Logarithmic Plot of Total Rewards
-    plt.figure()
-    plt.plot(range(1, episodes + 1), total_rewards, color='blue', marker='o')
-    plt.xscale('linear')  # Linear scale for episodes
-    plt.yscale('log')  # Logarithmic scale for rewards
-    plt.xlabel('Episode')
-    plt.ylabel('Total Rewards (Logarithmic Scale)')
-    plt.title('Logarithmic Rewards Over Episodes')
-    plt.grid(True, which="both", linestyle='--', linewidth=0.5)
-    plt.tight_layout()
-    plt.show()
-
 @app.route('/plot.png')
 def plot_png():
-    rewards = session.get('rewards_per_episode', [])
+    rewards = session.get('rewards_per_episode', [1])  # Default to avoid empty array
+    if len(rewards) == 1 and rewards[0] == 1:
+        return "No rewards data found in session."
+
     plt.figure()
-    plt.plot(rewards)
+    plt.plot(range(1, len(rewards) + 1), rewards)
     plt.xscale('linear')  # Lineare Skalierung der x-Achse (z. B. Episoden)
     plt.yscale('log')  # Logarithmische Skalierung der y-Achse für die Belohnungen
     plt.xlabel('Episode')
     plt.ylabel('Gesamt-Belohnung (logarithmisch)')
     plt.title('Logarithmische Darstellung der Belohnung über Episoden')
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5)
     plt.tight_layout()
     img = io.BytesIO()
     plt.savefig(img, format='png')
