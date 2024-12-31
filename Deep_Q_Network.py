@@ -15,9 +15,9 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 # Q-Learning Parameter
-alpha = 0.5
-gamma = 0.99
-epsilon = 0.1
+alpha = 0.5  # Alpha bestimmt, wie stark neue Informationen in das vorhandene Wissen integriert werden.
+gamma = 0.99  # Gamma bestimmt, wie viel Wert zukünftigen Belohnungen im Vergleich zu sofortigen Belohnungen beigemessen wird.
+epsilon = 0.1  # Epsilon bestimmt, wie oft zufällige Aktionen (Exploration) gewählt werden, anstatt die beste bekannte Aktion (Exploitation) auszuführen.
 
 difficulty_levels = [1, 2, 3, 4, 5]
 x = symbols('x')

@@ -26,13 +26,13 @@ def choose_action(state, epsilon):
         print(f"Q-values for state {state}: {np.round(q_values.detach().numpy()[0], 2)}")
     return action
 
-def simulate_agent(episodes=1000):
+def simulate_agent(episodes=400):
     state = [1]  # Starting level
     level_counts = Counter()
 
-    epsilon = 0.5  # Start with a moderate exploration rate
+    epsilon = 0.9  # Start with a high exploration rate
     epsilon_decay = 0.99  # Faster decay of epsilon to encourage exploitation
-    epsilon_min = 0.1
+    epsilon_min = 0.1  # this is the minimum exploration rate (10%). It can't fall down below this.
 
     total_rewards = []
 
